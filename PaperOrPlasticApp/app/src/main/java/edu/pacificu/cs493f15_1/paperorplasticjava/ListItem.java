@@ -126,11 +126,6 @@ public class ListItem
         mAisle = aisle;
     }
 
-    public void setAddQuantity (int quantityToAdd)
-    {
-        mQuantity += quantityToAdd;
-    }
-
     public void setQuantity (int quantity)
     {
         mQuantity = quantity;
@@ -177,7 +172,6 @@ public class ListItem
     {
         setFoodType (foodType);
         setAisle(aisle);
-        setAddQuantity(quantityToAdd);
         setPrice(price);
         setCustomCategory(customCategory);
         setCheckedOff(checkedOff);
@@ -245,7 +239,7 @@ public class ListItem
         setName(itemInput.nextLine());
         setFoodType(itemInput.nextInt());
         setAisle(itemInput.nextInt());
-        setAddQuantity(itemInput.nextInt());
+        setQuantity(itemInput.nextInt());
         setPrice(itemInput.nextDouble());
         setCustomCategory(itemInput.nextInt());
         setCheckedOff(itemInput.nextBoolean());

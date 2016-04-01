@@ -100,9 +100,9 @@ public abstract class PoPList
         {
           tempItem = mItems.get (i);
 
-          if (item.getItemName().contains (tempItem.getItemName()))
+          if (item.getItemName().equals(tempItem.getItemName()))
           {
-            tempItem.setAddQuantity (1);
+              tempItem.setQuantity (tempItem.getQuantity() + 1);
             mItems.set (i, tempItem);
             bExists = true;
           }

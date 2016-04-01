@@ -16,7 +16,9 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:background="#c4c3c3">
+            android:background="#c4c3c3"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp">
 
             <TextView
                 android:layout_width="165dp"
@@ -29,13 +31,11 @@
 
                 android:gravity="center_vertical|center_horizontal"
                 android:textColor="#5e5e5e"
-                android:layout_alignTop="@+id/bBackToHome"
                 android:layout_centerHorizontal="true"
                 android:layout_alignParentStart="false"
                 android:layout_alignParentLeft="false"
-                android:layout_toEndOf="@id/bBackToHome"
-                android:layout_toRightOf="@id/bBackToHome"
-                android:layout_marginLeft="25dp" />
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="20dp" />
 
             <Button
                 android:layout_width="50dp"
@@ -46,16 +46,6 @@
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true" />
 
-            <Button
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
-                android:id="@+id/bBackToHome"
-                android:layout_centerVertical="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:background="@drawable/back"
-                android:layout_marginTop="5dp" />
-
             <ToggleButton
                 android:layout_width="70dp"
                 android:layout_height="30dp"
@@ -65,18 +55,12 @@
                 android:textOff="@string/sEdit"
                 android:textOn="@string/sEdit"
                 android:textSize="15sp"
-                android:layout_centerVertical="true"
-                android:layout_toRightOf="@+id/groceryListText"
-                android:layout_toEndOf="@+id/groceryListText"
-                android:layout_toStartOf="@id/bListSettings"
-                android:layout_toLeftOf="@id/bListSettings"
-                android:layout_alignParentStart="false"
-                android:layout_alignParentLeft="false"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="10dp"
                 android:gravity="center"
                 android:textColor="@color/ccBlack"
-                android:background="@drawable/edit_btn_toggle" />
+                android:background="@drawable/edit_btn_toggle"
+                android:layout_centerVertical="true"
+                android:layout_toLeftOf="@+id/groceryListText"
+                android:layout_toStartOf="@+id/groceryListText" />
 
         </RelativeLayout>
 

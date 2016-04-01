@@ -77,7 +77,7 @@ public abstract class PoPListActivity extends FragmentActivity {
     private String mPoPFileName;
     private PoPLists mPoPLists;
     private DialogListener mListInfoListener;
-
+    private boolean bListsAreRead;
     private int mItemLayout;
 
     private ArrayList<ListItemAdapter> mListAdapters = new ArrayList<ListItemAdapter>();
@@ -128,6 +128,7 @@ public abstract class PoPListActivity extends FragmentActivity {
         mbIsOnEdit = false;
         //to view items
         mListView = (ListView) findViewById(R.id.listView);
+        bListsAreRead = false;
 
         handleSwipingToDelete();
 
@@ -136,9 +137,6 @@ public abstract class PoPListActivity extends FragmentActivity {
 
         //setup edit button
         setupEditDeleteButtonsForLists();
-
-        //setup back buttons
-        setupBackButton(isGrocery);
 
         //setup settings activity button
         setupSettingsActivityButton(isGrocery);
@@ -152,8 +150,81 @@ public abstract class PoPListActivity extends FragmentActivity {
         addAllExistingListsInPoPListsToTabs();
     }
 
+    /********************************************************************************************
+     * Function name: onPause
+     *
+     * Description:   When the activity is paused writes the PoPLists to the file passed in OnCreate
+     *
+     * Parameters:    none
+     *
+     * Returns:       none
+     ******************************************************************************************/
+    @Override
+    protected void onPause ()
+    {
+        super.onPause();
 
+        writeListsToFile();
+        //Slows down app a lot when moving to another page
+       /* mListTabHost.setCurrentTab(0);
+        for (int i = 0; i < mPoPLists.getSize(); i++)
+        {
+            removeListTab(i);
+        }
 
+        mPoPLists.clearLists();*/
+        mListAdapters.clear();
+        bListsAreRead = false;
+    }
+
+    @Override
+    protected void onDestroy ()
+    {
+        super.onDestroy();
+        bListsAreRead = false;
+
+    }
+    /********************************************************************************************
+     * Function name: onResume
+     *
+     * Description:   When the activity is resumed reads in PoPLists from the file passed in OnCreate
+     *                and updates mPoPLists with the information.
+     *
+     * Parameters:    none
+     *
+     * Returns:       none
+     ******************************************************************************************/
+    @Override
+    protected void onResume ()
+    {
+        Log.d("PopListActivity", "past removing tabs");
+        super.onResume();
+
+        Context context = getApplicationContext();
+        File popFile = context.getFileStreamPath(mPoPFileName);
+
+        mbIsOnEdit = false;
+
+        if (popFile.exists() && !bListsAreRead) {
+
+            mPoPLists.clearLists();
+
+            readListsFromFile(mPoPLists);
+            bListsAreRead = true;
+            Log.d("PopListActivity", "size:" + Integer.toString(mPoPLists.getSize()));
+        }
+
+    }
+
+    @Override
+    protected void onStart () {
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop () {
+        super.onStop();
+    }
 
     /***********************************************************************************************
     *   Method:      handleSwipingToDelete
@@ -164,39 +235,6 @@ public abstract class PoPListActivity extends FragmentActivity {
     ***********************************************************************************************/
     private void handleSwipingToDelete ()
     {
-/*
-        mListView.setOnTouchListener(new OnSwipeTouchListener(this, mListView) {
-            @Override
-            public void onSwipeRight(int pos) {
-                //Toast.makeText (GroceryListActivity.this, "right", Toast.LENGTH_LONG).show();
-
-                if (!mbIsOnEdit) {
-                    hideDeleteButton(pos);
-                }
-
-                if (mbIsOnEdit) {
-                    if (mListAdapters.size() != 0) {
-                        int size = getCurrentPoPList().getSize();
-                        if (size > 0) {
-
-                            for (int i = 0; i < size; i++) {
-                                showDeleteButton(i);
-                            }
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onSwipeLeft(int pos) {
-                //Toast.makeText (GroceryListActivity.this, "left", Toast.LENGTH_LONG).show();
-                if (!mbIsOnEdit) {
-                    showDeleteButton(pos);
-                }
-            }
-        });
-*/
-
         //to view items in list
         mListView = (ListView) findViewById(R.id.listView);
         //to be able to swipe list items over for delete
@@ -347,30 +385,6 @@ public abstract class PoPListActivity extends FragmentActivity {
             }
         });
     }
-    /***********************************************************************************************
-     *   Method:      setupBackButton
-     *   Description: Setup back button that takes user from grocery list page to continue page
-     *   Parameters:  NONE
-     *   Returned:    NONE
-     ***********************************************************************************************/
-    private void setupBackButton (final boolean isGrocery)
-        {
-        mbBack = (Button) findViewById (R.id.bBackToHome);
-        mbBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isGrocery) {
-                    Intent intent = new Intent(PoPListActivity.this, ContinueActivity.class);
-                    intent.putExtra("Caller", "GroceryListActivity");
-                    startActivity(intent);
-                } else {
-                    Intent intent = new Intent(PoPListActivity.this, ContinueActivity.class);
-                    intent.putExtra("Caller", "KitchenInventoryActivity");
-                    startActivity(intent);
-                }
-            }
-        });
-    }
 
     /***********************************************************************************************
      *   Method:      setupAddListAndAddItemButtons
@@ -382,14 +396,6 @@ public abstract class PoPListActivity extends FragmentActivity {
     {
         //set up addList button
         mbAddList = (Button) findViewById(R.id.bAddList);
-//        mbAddList.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                fm = getSupportFragmentManager();
-//                ListDFragment listDFragment = new ListDFragment();
-//                listDFragment.show(fm, "Hi");
-//            }
-//        });
 
         //set up add item button
         mbAddItem = (Button) findViewById(R.id.bAddItem);
@@ -549,8 +555,16 @@ public abstract class PoPListActivity extends FragmentActivity {
      ******************************************************************************************/
 
     private void addAllExistingListsInPoPListsToTabs() {
-        for (int i = 0; i < mPoPLists.getSize(); i++) {
-            addListTab(mPoPLists.getList(i), i);
+
+        if (mPoPLists.getSize() != 0) {
+            for (int i = 0; i < mPoPLists.getSize(); i++) {
+                addListTab(mPoPLists.getList(i), i);
+            }
+        }
+        else
+        {
+            mbAddItem.setTextColor(Color.rgb(170, 170, 170));
+            mbAddItem.setEnabled(false);
         }
     }
 
@@ -567,49 +581,6 @@ public abstract class PoPListActivity extends FragmentActivity {
     public ListItemAdapter getCurrentListAdapter()
     {
         return mListAdapters.get(mListTabHost.getCurrentTab());
-    }
-
-    /********************************************************************************************
-     * Function name: onPause
-     *
-     * Description:   When the activity is paused writes the PoPLists to the file passed in OnCreate
-     *
-     * Parameters:    none
-     *
-     * Returns:       none
-     ******************************************************************************************/
-    @Override
-    protected void onPause ()
-    {
-        super.onPause();
-
-        writeListsToFile();
-        mPoPLists.clearLists();
-    }
-    /********************************************************************************************
-     * Function name: onResume
-     *
-     * Description:   When the activity is resumed reads in PoPLists from the file passed in OnCreate
-     *                and updates mPoPLists with the information.
-     *
-     * Parameters:    none
-     *
-     * Returns:       none
-     ******************************************************************************************/
-    @Override
-    protected void onResume ()
-    {
-        super.onResume();
-
-        Context context = getApplicationContext();
-        File popFile = context.getFileStreamPath(mPoPFileName);
-
-        mbIsOnEdit = false;
-
-        if (popFile.exists()) {
-            mPoPLists.clearLists();
-            readListsFromFile(mPoPLists);
-        }
     }
 
     /********************************************************************************************
@@ -631,6 +602,12 @@ public abstract class PoPListActivity extends FragmentActivity {
         spec.setIndicator(newList.getListName());
         mListTabHost.addTab(spec);
 
+        //for if there were no tabs and the addItem button was disabled
+        if (!mbAddItem.isEnabled())
+        {
+            mbAddItem.setEnabled(true);
+            mbAddItem.setTextColor(Color.rgb(0, 0, 0));
+        }
 
         //for keeping track of items in list
         addListAdapter(mPoPLists.getList(index));
@@ -643,6 +620,11 @@ public abstract class PoPListActivity extends FragmentActivity {
         }
     }
 
+
+    public void removeListTab (int pos)
+    {
+        mListTabHost.getTabWidget().removeView(mListTabHost.getTabWidget().getChildTabViewAt(pos));
+    }
 
     /********************************************************************************************
      * Function name: addItemToListView
@@ -905,9 +887,12 @@ public abstract class PoPListActivity extends FragmentActivity {
             e.printStackTrace();
         }
 
-        for (int i = 0; i < popLists.getSize(); ++i) {
-            addListTab(popLists.getList(i), i);
+        if (!bListsAreRead) {
+            for (int i = 0; i < popLists.getSize(); ++i) {
+                addListTab(popLists.getList(i), i);
+            }
         }
+
     }
 
     /********************************************************************************************

@@ -146,15 +146,16 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
             itemHolder.itemQuantity.addTextChangedListener(new TextWatcher() {
                 @Override
                 public void onTextChanged(CharSequence s, int start, int before, int count) {
-                }
-
-                @Override
-                public void afterTextChanged(Editable s) {
                     //if editText is not empty, assign new quantity to item
                     if (!s.toString().isEmpty())
                     {
                         mItemArray.get(position).setQuantity(Integer.parseInt(s.toString()));
                     }
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+
                 }
 
                 @Override
@@ -165,6 +166,7 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
 
             //set upDeleteButton
             itemHolder.bDelete = (Button) row.findViewById(R.id.bDelete);
+            itemHolder.bDelete.setVisibility(View.INVISIBLE);
             itemHolder.bDelete.setOnClickListener(new View.OnClickListener() {
 
                 private View mView = null;
@@ -172,48 +174,56 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
                 @Override
                 public void onClick(View v) {
                     mView = v;
+                    PoPListActivity parentActivity = (PoPListActivity) getContext();
                     PoPList poPList = ((PoPListActivity) getContext()).getCurrentPoPList();
-                    Button delete = (Button)v;
+                    Button delete = (Button) v;
                     int pos = (Integer) v.getTag();
-
-                    delete.setVisibility(View.INVISIBLE);
 
                     //delete item
                     poPList.delete(pos);
                     //notify list adapter
-                    ((PoPListActivity) getContext()).getCurrentListAdapter().notifyDataSetChanged();
+                    parentActivity.getCurrentListAdapter().notifyDataSetChanged();
 
+                    if (!parentActivity.isOnEdit()) {
+                        delete.setVisibility(View.INVISIBLE);
+                        slideView();
+                    }
+                }
+
+                //method of the delete button's onClickListener
+                public void slideView() {
                     //wait a moment before sliding view so that list can be updated in time
                     Handler handler = new Handler();
                     handler.postDelayed(new Runnable() {
                         public void run() {
                             // Actions to do after 100 milliseconds
-                            slideView();
+                            ((PoPListActivity) getContext()).slideItemView( ((View) mView.getParent()), PoPListActivity.SLIDE_RIGHT_ITEM );
 
                         }
-                    }, 100);
+                    }, 60);
 
-                }
-
-                //method of the delete button's onClickListener
-                public void slideView ()
-                {
-                    if (!((PoPListActivity) getContext()).isOnEdit()) {
-                        ((PoPListActivity) getContext()).slideItemView(((View) mView.getParent()), PoPListActivity.SLIDE_RIGHT_ITEM);
-                    }
                 }
 
 
             });
 
-            //used later when the row's button methods are already initialized but the information (like position and name are not)
-            row.setTag(itemHolder);
+
 
         }
         else
         {
             itemHolder = (ItemHolder) row.getTag();
         }
+
+        //If previous item was deleted, then delete will show on newly added item, this fixes that
+        if (itemHolder.bDelete.getVisibility() == View.VISIBLE && !((PoPListActivity) getContext()).isOnEdit())
+        {
+            itemHolder.bDelete.setVisibility(View.INVISIBLE);
+            ((PoPListActivity) getContext()).slideItemView( ((View) itemHolder.bDelete.getParent()), PoPListActivity.SLIDE_RIGHT_ITEM );
+        }
+
+        //used later when the row's button methods are already initialized but the information (like position and name are not)
+        row.setTag(itemHolder);
 
         //set list row info
         ListItem item = mItemArray.get(position);

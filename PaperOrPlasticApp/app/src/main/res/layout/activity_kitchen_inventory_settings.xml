@@ -19,24 +19,12 @@ android:layout_height="match_parent"
         android:id="@+id/relativeLayout2">
 
         <Button
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/bBack"
-            android:layout_centerVertical="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:background="@drawable/back"
-            android:layout_marginTop="5dp" />
-
-        <Button
             style="?android:attr/buttonStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sEdit"
             android:id="@+id/bEdit"
-            android:layout_alignParentTop="true"
-            android:layout_toRightOf="@+id/bBack"
-            android:layout_toEndOf="@+id/bBack" />
+            android:layout_alignParentTop="true" />
 
         <TextView
             android:layout_width="wrap_content"

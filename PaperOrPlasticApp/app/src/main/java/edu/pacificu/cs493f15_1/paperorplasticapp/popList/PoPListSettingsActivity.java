@@ -87,7 +87,7 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
 
         setupEditDeleteButtonsForGLists ();
 
-        setupBackButton (isGrocery);
+        //setupBackButton (isGrocery);
 
 /*<<<<<<< HEAD:PaperOrPlasticApp/app/src/main/java/edu/pacificu/cs493f15_1/paperorplasticapp/POPList/PoPListSettingsActivity.java
       mPoPLists = popLists;
@@ -212,7 +212,7 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
     }
 
 
-    private void setupBackButton (final boolean isGrocery) {
+   /* private void setupBackButton (final boolean isGrocery) {
         mbBack = (Button) findViewById(R.id.bBack);
         mbBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -237,7 +237,7 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
                 startActivity(intent);
             }
         });
-    }
+    }*/
 
     private void setupEditDeleteButtonsForGLists ()
     {
