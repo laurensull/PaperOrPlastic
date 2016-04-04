@@ -46,6 +46,7 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
     }
 
 
+
     @Override
     public ListItem getItem (int position) {
         // TODO Auto-generated method stub

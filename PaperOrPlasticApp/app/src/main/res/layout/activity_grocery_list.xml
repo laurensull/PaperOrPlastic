@@ -79,7 +79,7 @@
                 android:text="@string/sAddList"
                 android:onClick="onAddListClick" />
 
-            <HorizontalScrollView android:layout_width="321dp"
+            <HorizontalScrollView android:layout_width="315dp"
                 android:layout_height="match_parent"
                 android:fillViewport="true"
                 android:scrollbars="horizontal"
@@ -87,14 +87,16 @@
                 android:backgroundTint="#48928d"
                 android:backgroundTintMode="multiply"
                 android:foregroundGravity="left"
-                android:scrollIndicators="right">
+                android:scrollIndicators="right"
+                android:nestedScrollingEnabled="true">
 
                 <TabWidget android:id="@android:id/tabs"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     style="@style/Base.Widget.AppCompat.ActionBar.TabBar"
                     android:foregroundGravity="top|left|bottom|right"
-                    android:showDividers="beginning|end" />
+                    android:showDividers="beginning|end"
+                    android:scrollIndicators="right" />
             </HorizontalScrollView>
 
         </TableRow>
@@ -151,13 +153,8 @@
             android:layout_height="match_parent"
             android:layout_gravity="bottom">
 
-            <fragment
-                android:layout_width="wrap_content"
-                android:layout_height="393dp"
-                android:name="android.app.ListFragment"
-                android:id="@+id/fragment"
-                android:layout_gravity="left|top"
-                tools:layout="@layout/design_navigation_menu" />
+
+
 
             <ListView
                 android:layout_width="wrap_content"

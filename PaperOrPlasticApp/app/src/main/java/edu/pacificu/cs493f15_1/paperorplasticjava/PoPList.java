@@ -85,8 +85,10 @@ public abstract class PoPList
     /********************************************
     * Adds
      *******************************************/
-    public void addItem (ListItem item)
-        {
+
+    //Returns true if item name is already in list
+    public boolean addItem (ListItem item)
+    {
       int i;
       boolean bExists;
       ListItem tempItem;
@@ -100,7 +102,7 @@ public abstract class PoPList
         {
           tempItem = mItems.get (i);
 
-          if (item.getItemName().equals(tempItem.getItemName()))
+          if (item.getItemName().equals (tempItem.getItemName()))
           {
               tempItem.setQuantity (tempItem.getQuantity() + 1);
             mItems.set (i, tempItem);
@@ -109,10 +111,11 @@ public abstract class PoPList
         }
       }
 
-      if (bExists == false)
-      {
-        mItems.add (item);
+      if (bExists == false) {
+          mItems.add(item);
       }
+
+        return bExists;
     }
 
     //(only works for certain kinds of category sorting)
