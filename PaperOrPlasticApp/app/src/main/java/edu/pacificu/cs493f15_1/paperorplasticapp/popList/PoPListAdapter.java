@@ -2,7 +2,9 @@ package edu.pacificu.cs493f15_1.paperorplasticapp.popList;
 
     import android.app.Activity;
 import android.content.Context;
-import android.view.LayoutInflater;
+    import android.content.Intent;
+    import android.os.Bundle;
+    import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -13,7 +15,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 
 import edu.pacificu.cs493f15_1.paperorplasticapp.R;
-import edu.pacificu.cs493f15_1.paperorplasticjava.PoPList;
+    import edu.pacificu.cs493f15_1.paperorplasticapp.coupons.CouponsActivity;
+    import edu.pacificu.cs493f15_1.paperorplasticjava.PoPList;
 
 /**
  * Updated by heyd5159 on 2/27/2016.
@@ -110,16 +113,14 @@ public abstract class PoPListAdapter extends ArrayAdapter<PoPList>
             listHolder = new ListHolder();
             //get items in row and set them to layout items
             listHolder.listName = (TextView)row.findViewById(R.id.listName);
-
-
-           /* mItemInfoListener = new NewItemInfoDialogListener() {
+            listHolder.listName.setOnClickListener(new View.OnClickListener(){
                 @Override
-                public void onFinishNewItemDialog(String inputText) {
-                    ListItem newItem = new ListItem(inputText);
+                public void onClick(View v) {
 
-                    addItemToListView(newItem);
-                    mLastAddedItemName = inputText;
-                }*/
+                    ((PoPListActivity) getContext()).onListClick((String) v.getTag());
+
+                }
+            });
 
             listHolder.bDelete = (Button) row.findViewById(R.id.bDelete);
             listHolder.bDelete.setOnClickListener(new View.OnClickListener() {
@@ -131,19 +132,19 @@ public abstract class PoPListAdapter extends ArrayAdapter<PoPList>
                     mView = v;
 
                     //for activity to know which list to delete if they choose to delete it in dialog fragment
-                    ((PoPListSettingsActivity) getContext()).setPositionClicked ((Integer)v.getTag());
+                    ((PoPListActivity) getContext()).setPositionClicked ((Integer)v.getTag());
 
-                    ((PoPListSettingsActivity) getContext()).setDeleteListListener(new DeleteListDialogListener() {
+                    ((PoPListActivity) getContext()).setDeleteListListener(new DeleteListDialogListener() {
                         @Override
                         public void onDeleted() {
                             //
-                            ((PoPListSettingsActivity) getContext()).deleteList();
+                            ((PoPListActivity) getContext()).deleteList();
                         }
                     });
 
                     v.setVisibility(View.INVISIBLE);
 
-                    ((PoPListSettingsActivity) getContext()).showDeleteListFragment ();
+                    ((PoPListActivity) getContext()).showDeleteListFragment ();
 
 
                 }
@@ -162,6 +163,7 @@ public abstract class PoPListAdapter extends ArrayAdapter<PoPList>
         //set list row info
         PoPList list = mListArray.get(position);
         listHolder.listName.setText(list.getListName());
+        listHolder.listName.setTag(list.getListName());
         listHolder.bDelete.setTag(position);
 
 
@@ -169,7 +171,7 @@ public abstract class PoPListAdapter extends ArrayAdapter<PoPList>
     }
 
 
-    static class ListHolder
+    public static class ListHolder
     {
         QtyChangeDialogListener mQtyChangeListener;
         TextView listName;

@@ -3,14 +3,20 @@ package edu.pacificu.cs493f15_1.paperorplasticapp.popList;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.io.File;
@@ -21,43 +27,37 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 import edu.pacificu.cs493f15_1.paperorplasticapp.R;
-import edu.pacificu.cs493f15_1.paperorplasticapp.groceryList.GroceryListActivity;
-import edu.pacificu.cs493f15_1.paperorplasticapp.kitchenInventory.KitchenInventoryActivity;
-import edu.pacificu.cs493f15_1.paperorplasticapp.menu.SettingsActivity;
+import edu.pacificu.cs493f15_1.paperorplasticjava.ListItem;
+import edu.pacificu.cs493f15_1.paperorplasticjava.NutritionFactModel;
+import edu.pacificu.cs493f15_1.paperorplasticjava.PoPList;
 import edu.pacificu.cs493f15_1.paperorplasticjava.PoPLists;
 
 /**
- * Altered by heyd5159 on 2/6/2016.
+ * Created by sull0678 on 4/4/2016.
  */
-/***************************************************************************************************
- *   Class:         PoPListSettingsActivity
- *   Description:   Creates PoPListSettingsActivity class that controls what occurs when the
- *                  user reaches either the kitchen or grocery list settings page. Specifically,
- *                  handles what happens when the user specifies whether the PoP list
- *                  button should be displayed on the continue activity.
- *                  creates intents that take users to those specific pages.
- *   Parameters:    N/A
- *   Returned:      N/A
- **************************************************************************************************/
+public class PoPListItemsActivity extends FragmentActivity implements View.OnClickListener {
+    static final float SLIDE_RIGHT_ITEM = 5;
+    static final float SLIDE_LEFT_ITEM = -145;
+    final int REQUEST_OK = 1;
 
-public abstract class PoPListSettingsActivity extends FragmentActivity implements View.OnClickListener
-{
-    final float SLIDE_RIGHT_ITEM = 5;
-    final float SLIDE_LEFT_ITEM = -145;
-
-    private ListView mListOfListView;
-    private PoPLists mPoPLists;
-    private PoPListAdapter mListAdapter;
+    private ListView mItemListView;
+    private ListItemAdapter mItemAdapter;
     private DeleteListDialogListener mDeleteListListener;
-    private Button mbBack;
+    //private Button mbBack;
     private ToggleButton mbEdit;
-    private boolean mbIsOnEdit;
+    private FloatingActionButton mbAddItem;
+    private boolean mbIsOnEdit, mbAddingItem;
     private FragmentManager fm;
+    private String mPoPListName;
     int mPositionClicked = 0;
-    Button delete;
-
+    private Button delete;
+    private PoPList mPoPList;
+    private PoPLists mPoPLists;
     private String mPoPFileName;
     int mLastTabIndex;
+    private ListItem newItem;
+    private boolean mbIsGrocery;
+    private Spinner mGroupBySpinner;
 
 
 
@@ -76,53 +76,206 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
         super.onCreate(savedInstanceState);
     }
 
-    protected void PoPOnCreate (Bundle savedInstanceState, PoPLists popLists, final int activitylayout, final String fileName, final boolean isGrocery)
+    protected void PoPOnCreate (Bundle savedInstanceState, PoPLists popLists, final String fileName, final boolean isGrocery)
     {
-        setContentView(activitylayout);
-        mbIsOnEdit = false;
-
-        mPoPLists = popLists;
+        setContentView(R.layout.activity_list_items);
+        mbIsGrocery = isGrocery;
         mPoPFileName = fileName;
-        mLastTabIndex = -1;
+        mbIsOnEdit = false;
+        mPoPLists = popLists;
+        //get current viewing list
+        mPoPListName = getIntent().getStringExtra("PoPListName");
 
-        setupEditDeleteButtonsForGLists ();
+        Log.d("PoPListItemsActivity", "PopList passed through: " + mPoPListName);
+
+        readListsFromFile(popLists);
+        mPoPList = popLists.getListByName(mPoPListName);
+       /*if (1 == mPoPList.describeContents())
+       {
+           mPoPFileName = GroceryLists.GROCERY_FILE_NAME;
+       }
+        else
+       {
+           mPoPFileName = KitchenInventories.KITCHEN_FILE_NAME;
+       }*/
+
+        //set up add item button
+        mbAddItem = (FloatingActionButton) findViewById(R.id.bAddList);
+
+        setupEditDeleteButtonsForGLists();
+
+        setUpListView();
 
         //setupBackButton (isGrocery);
 
-        mListOfListView = (ListView) findViewById(R.id.listViewOfLists);
+        //setup the sorting group by spinner (drop down list sorting)
+        setUpGroupSpinnerHandleSorting();
+    }
+
+    private void setUpListView()
+    {
+        mItemListView = (ListView) findViewById(R.id.listViewOfItems);
         //list adapter holds info of lists for listView
-        mListAdapter = new PoPListAdapter(mListOfListView.getContext(),
-                R.layout.listview_list_row_settings, mPoPLists.getArrayOfLists()) {
+        //TODO: change name of grocery_list_item.xml to something generic to use in kitchen inventory as well
+        mItemAdapter = new ListItemAdapter(this,
+                R.layout.grocery_list_item, mPoPList.getItemArray()) {
         };
 
-        mListOfListView.setAdapter(mListAdapter);
+        mItemListView.setAdapter(mItemAdapter);
 
         //set up swipe listening
-        mListOfListView.setOnTouchListener(new OnSwipeTouchListener(this, mListOfListView) {
+        mItemListView.setOnTouchListener(new OnSwipeTouchListener(this, mItemListView) {
             @Override
             public void onSwipeRight(int pos) {
-
-
                 if (!mbIsOnEdit) {
                     hideDeleteButton(pos);
                 }
-
             }
 
             @Override
             public void onSwipeLeft(int pos) {
-
                 if (!mbIsOnEdit) {
                     showDeleteButton(pos);
                 }
             }
         });
+
+        mItemListView.setItemsCanFocus(true);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_OK) {
+            if (resultCode == RESULT_OK) {
+                String item_name = data.getStringExtra("item_name");
+                newItem = new ListItem(item_name);
+
+                newItem.setAll(0, 0, 1, 0.00, 0, false, "init", new NutritionFactModel());
+                newItem.setNutritionFacts(0, 0, 0, 0, 0, 0); //Initializing for outputing to a file;
+                //OutputFileToLogcat("onActivityResult Part 1");
+                mPoPLists.clearLists();
+                readListsFromFile(mPoPLists);
+                addItemToListView(newItem);
+                writeListsToFile();
+
+
+                mbAddingItem = true;
+            }
+        }
+    }
+
+    /********************************************************************************************
+     * Function name: addItemToListView
+     * <p/>
+     * Description:   Adds item layout to listView as a new row and adds it to listadapter
+     * <p/>
+     * Parameters:    newItem - the new ListItem being added
+     * <p/>
+     * Returns:       none
+     ******************************************************************************************/
+    public void addItemToListView (ListItem newItem)
+    {
+        boolean bItemExisted = mPoPList.addItem(newItem);
+
+        if (bItemExisted)
+        {
+            Context context = getApplicationContext();
+            CharSequence text = newItem.getItemName() + " quantity was incremented!";
+            int duration = Toast.LENGTH_LONG;
+
+            Toast toast = Toast.makeText(context, text, duration);
+            toast.show();
+        }
+
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            public void run() {
+                // Actions to do after 60 milliseconds
+                mItemAdapter.notifyDataSetChanged();
+
+            }
+        }, 60);
+
+
+       /* if (mPoPList.addItem(newItem))
+        {
+            Toast toast = Toast.makeText(getApplicationContext(),
+                    getResources().getString(R.string.sDuplicateItemError), Toast.LENGTH_LONG);
+            toast.show();
+        }*/
+
+        //re-sort the list depending on the current sorting category
+        switch (mPoPList.getCurrentSortingValue()) {
+
+            case PoPList.SORT_ALPHA:
+                mPoPList.sortListByName();
+
+                break;
+            case PoPList.SORT_AISLE:
+            case PoPList.SORT_CAL:
+            case PoPList.SORT_DATE:
+            case PoPList.SORT_PRICE:
+            case PoPList.SORT_NONE:
+                break;
+
+        }
+        // Removed because I clear mListAdapters onPause().
+        //mListAdapters.get(mListTabHost.getCurrentTab()).notifyDataSetChanged();
     }
 
 
-    public PoPLists getPoPLists()
-    {
-        return mPoPLists;
+    /***********************************************************************************************
+     * Method:      setUpGroupSpinnerHandleSorting
+     * Description: Sets up the group by drop down menu and takes care of sorting the list items
+     * within grocery lists.
+     * Parameters:  NONE
+     * Returned:    NONE
+     ***********************************************************************************************/
+    private void setUpGroupSpinnerHandleSorting() {
+        mGroupBySpinner = (Spinner) findViewById(R.id.GroupBySpinner);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(PoPListItemsActivity.this,
+                android.R.layout.simple_spinner_item, PoPList.GroupByStrings);
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mGroupBySpinner.setAdapter(adapter);
+        mGroupBySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                PoPList list = mPoPList;
+
+                if (null != list) {
+                    switch (position) {
+                        case PoPList.SORT_NONE: // first item in dropdown currently blank
+                            mPoPList.setCurrentSortingValue(PoPList.SORT_NONE);
+                            break;
+                        case PoPList.SORT_ALPHA: //second item in dropdown currently alphabetical
+
+                            mPoPList.setCurrentSortingValue(PoPList.SORT_ALPHA);
+                            mPoPList.sortListByName();
+                            mItemAdapter.notifyDataSetChanged();
+
+                            break;
+                        case PoPList.SORT_CAL: //calories
+                            mPoPList.setCurrentSortingValue(PoPList.SORT_CAL);
+                            break;
+                        case PoPList.SORT_DATE: //date entered
+                            mPoPList.setCurrentSortingValue(PoPList.SORT_DATE);
+                            break;
+                        case PoPList.SORT_AISLE: //aisle
+                            mPoPList.setCurrentSortingValue(PoPList.SORT_AISLE);
+                            break;
+                        case PoPList.SORT_PRICE: //price
+                            mPoPList.setCurrentSortingValue(PoPList.SORT_PRICE);
+                            break;
+                    }
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                //Nothing to do if the dropdown is not selected.
+            }
+        });
     }
 
     public void onClick (View view)
@@ -199,22 +352,41 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
     {
 
         //if its clicked, show or hide delete buttons
-        int size = mPoPLists.getSize();
+        int size = mPoPList.getSize();
         if (size > 0) {
 
             if (!mbIsOnEdit) {
                 mbIsOnEdit = true;
-                Log.d("PopListSettings", Boolean.toString(mbIsOnEdit));
+                Log.d("PopListItems", Boolean.toString(mbIsOnEdit));
                 mbEdit.setChecked(mbIsOnEdit);
                 showDeleteButtons(size);
             } else {
                 mbIsOnEdit = false;
-                Log.d("PopListSettings", Boolean.toString(mbIsOnEdit));
+                Log.d("PopListItems", Boolean.toString(mbIsOnEdit));
                 mbEdit.setChecked(mbIsOnEdit);
                 hideDeleteButtons(size);
             }
         }
 
+    }
+
+
+    /***********************************************************************************************
+     * Method:      onAddItemClick
+     * Description: If addItem button is clicked, call activity for searching for an item
+     * Parameters:  view - the button that was clicked
+     * Returned:    NONE
+     ***********************************************************************************************/
+
+    public void onAddItemClick(View view) {
+        Intent addItemIntent = new Intent(PoPListItemsActivity.this, ItemSearchActivity.class);
+
+        if (mbIsGrocery) {
+            addItemIntent.putExtra("Caller", "GroceryListActivity");
+        } else {
+            addItemIntent.putExtra("Caller", "KitchenInventoryActivity");
+        }
+        startActivityForResult(addItemIntent, REQUEST_OK);
     }
 
 
@@ -300,7 +472,6 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
             e.printStackTrace();
         }
     }
-
     /********************************************************************************************
      * Function name: showDeleteButton
      *
@@ -314,10 +485,10 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
      ******************************************************************************************/
     private boolean showDeleteButton(final int pos) {
         mPositionClicked = pos;
-        View child = mListOfListView.getChildAt(pos - mListOfListView.getFirstVisiblePosition());
+        View child = mItemListView.getChildAt(pos - mItemListView.getFirstVisiblePosition());
         if (child != null) {
 
-           delete = (Button) child.findViewById(R.id.bDelete);
+            delete = (Button) child.findViewById(R.id.bDelete);
 
             if (delete != null)
             {
@@ -348,7 +519,7 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
      ******************************************************************************************/
     private boolean hideDeleteButton(final int pos) {
         mPositionClicked = pos;
-        View child = mListOfListView.getChildAt(pos - mListOfListView.getFirstVisiblePosition());
+        View child = mItemListView.getChildAt(pos - mItemListView.getFirstVisiblePosition());
         if (child != null) {
 
             delete = (Button) child.findViewById(R.id.bDelete);
@@ -389,7 +560,7 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
      * Returns:       none
      ******************************************************************************************/
 
-    private void slideItemView (View child, float translationAmount)
+    public void slideItemView (View child, float translationAmount)
     {
         //can use this function to slide any other items in view over, does not slide over list name since we want to see the name
         // listName = (TextView) child.findViewById(R.id.listName);
@@ -412,7 +583,6 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
     protected void onResume ()
     {
         super.onResume();
-
 
         //read list info from file
         Context context = getApplicationContext();
@@ -451,10 +621,10 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
      *
      * Returns:       none
      ******************************************************************************************/
-    public void deleteList ()
+    public void deleteItem ()
     {
-        mPoPLists.deleteList(mPositionClicked);
-        mListAdapter.notifyDataSetChanged();
+        mPoPList.delete(mPositionClicked);
+        mItemAdapter.notifyDataSetChanged();
     }
 
 
@@ -464,7 +634,7 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
     }
 
     /********************************************************************************************
-     * Function name: DeleteListDialogListener
+     * Function name: DeleteItemDialogListener
      *
      * Description:   returns the mDeleteListListener for other class to use
      *
@@ -487,6 +657,21 @@ public abstract class PoPListSettingsActivity extends FragmentActivity implement
         fm = getSupportFragmentManager();
         DeletePoPListDFragment deleteListFragment = new DeletePoPListDFragment();
         deleteListFragment.show(fm, "Yeah");
+    }
+
+    public PoPList getPoPList()
+    {
+        return mPoPList;
+    }
+
+    public ListItemAdapter getItemAdapter()
+    {
+        return mItemAdapter;
+    }
+
+    public boolean isOnEdit()
+    {
+        return mbIsOnEdit;
     }
 
 }

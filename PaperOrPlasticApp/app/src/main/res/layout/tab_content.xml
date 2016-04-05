@@ -7,7 +7,7 @@
         android:layout_width="wrap_content"
         android:layout_height="35dp"
         android:text="Add Item"
-        android:id="@+id/bAddItem" />
+        android:id="@+id/bAddList" />
 
     <ListView
         android:layout_width="wrap_content"

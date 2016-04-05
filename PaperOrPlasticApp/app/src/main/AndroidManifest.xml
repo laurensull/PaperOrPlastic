@@ -36,6 +36,11 @@
         </activity>
 
         <activity
+            android:name=".popList.PoPListItemsActivity"
+            android:label="@string/title_activity_list_items">
+        </activity>
+
+        <activity
             android:name=".groceryList.GroceryListActivity"
             android:label="@string/title_activity_grocery_lists">
 
@@ -58,6 +63,16 @@
                 android:name="android.app.default_searchable"
                 android:value=".GroceryListActivity" />
                 -->
+        </activity>
+
+        <activity
+            android:name=".groceryList.GroceryListItemsActivity"
+            android:label="@string/title_activity_grocery_list_items">
+        </activity>
+
+        <activity
+            android:name=".kitchenInventory.KitchenInventoryItemsActivity"
+            android:label="@string/title_activity_kitchen_inventory_items">
         </activity>
 
         <activity

@@ -4,6 +4,8 @@ package edu.pacificu.cs493f15_1.paperorplasticjava;
  * Created by heyd5159 on 2/6/2016.
  */
 
+        import android.util.Log;
+
         import java.io.PrintWriter;
         import java.util.ArrayList;
         import java.util.Scanner;
@@ -41,6 +43,22 @@ public abstract class PoPLists
         {
             list =  mLists.get(listIndex);
         }
+        return list;
+
+    }
+
+    public PoPList getListByName (String listName)
+    {
+        PoPList list = null;
+
+        for (int i = 0; i < mLists.size() && list == null; ++i)
+        {
+            if (mLists.get(i).getListName().equals(listName))
+            {
+                list = mLists.get(i);
+            }
+        }
+
         return list;
 
     }
@@ -144,7 +162,7 @@ public abstract class PoPLists
         PoPList tempList;
 
         size = listsInput.nextInt();
-
+        Log.d("Reading lists", "Size of list" + size);
         for (int i = 0; i < size; ++i)
         {
             addList("temp");

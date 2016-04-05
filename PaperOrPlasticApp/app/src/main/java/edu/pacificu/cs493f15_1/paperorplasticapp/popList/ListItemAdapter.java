@@ -5,7 +5,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.TimerTask;
@@ -102,12 +100,15 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
 
             //set up check box functionality
             itemHolder.checkBox = (CheckBox)row.findViewById(R.id.itemCheckBox);
+            itemHolder.checkBox.setTag(mPosition);
             itemHolder.checkBox.setOnClickListener(new OnCheckListener()
             {
                 @Override
                 public void onClick (View v)
                 {
                     //to wait to remove for a certain amount of time
+                    mPosition = (Integer) v.getTag();
+
                     if (!mbWaiting)
                     {
                         mbWaiting = Boolean.TRUE;
@@ -118,8 +119,7 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
                             {
                                 mHandlerUI.post(new Runnable() {
                                     public void run() {
-                                        if (mbWaiting)
-                                        {
+                                        if (mbWaiting) {
                                             //remove item after certain amount of time?
                                             mItemArray.remove(mPosition);
                                             ListItemAdapter.this.notifyDataSetChanged();
@@ -175,15 +175,15 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
                 @Override
                 public void onClick(View v) {
                     mView = v;
-                    PoPListActivity parentActivity = (PoPListActivity) getContext();
-                    PoPList poPList = ((PoPListActivity) getContext()).getCurrentPoPList();
+                    PoPListItemsActivity parentActivity = (PoPListItemsActivity) getContext();
+                    PoPList poPList = ((PoPListItemsActivity) getContext()).getPoPList();
                     Button delete = (Button) v;
                     int pos = (Integer) v.getTag();
 
                     //delete item
                     poPList.delete(pos);
                     //notify list adapter
-                    parentActivity.getCurrentListAdapter().notifyDataSetChanged();
+                    parentActivity.getItemAdapter().notifyDataSetChanged();
 
                     if (!parentActivity.isOnEdit()) {
                         delete.setVisibility(View.INVISIBLE);
@@ -198,7 +198,7 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
                     handler.postDelayed(new Runnable() {
                         public void run() {
                             // Actions to do after 100 milliseconds
-                            ((PoPListActivity) getContext()).slideItemView( ((View) mView.getParent()), PoPListActivity.SLIDE_RIGHT_ITEM );
+                            ((PoPListItemsActivity) getContext()).slideItemView( ((View) mView.getParent()), PoPListItemsActivity.SLIDE_RIGHT_ITEM );
 
                         }
                     }, 60);
@@ -217,10 +217,10 @@ public class ListItemAdapter extends ArrayAdapter<ListItem>
         }
 
         //If previous item was deleted, then delete will show on newly added item, this fixes that
-        if (itemHolder.bDelete.getVisibility() == View.VISIBLE && !((PoPListActivity) getContext()).isOnEdit())
+        if (itemHolder.bDelete.getVisibility() == View.VISIBLE && !((PoPListItemsActivity) getContext()).isOnEdit())
         {
             itemHolder.bDelete.setVisibility(View.INVISIBLE);
-            ((PoPListActivity) getContext()).slideItemView( ((View) itemHolder.bDelete.getParent()), PoPListActivity.SLIDE_RIGHT_ITEM );
+            ((PoPListItemsActivity) getContext()).slideItemView( ((View) itemHolder.bDelete.getParent()), PoPListItemsActivity.SLIDE_RIGHT_ITEM );
         }
 
         //used later when the row's button methods are already initialized but the information (like position and name are not)
